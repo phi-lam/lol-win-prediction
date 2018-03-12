@@ -44,7 +44,7 @@ def parse_leagueoflegends(in_file):
 	#return match outcomes only
 	out_array = df.as_matrix()[:,1]
 	out_array = out_array.reshape(-1, 1)
-	# print(out_array)
+	# print(out_array) #
 
 	df.to_csv('parsed_leagueoflegends.csv')
 	return out_array
