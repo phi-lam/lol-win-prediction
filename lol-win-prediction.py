@@ -94,6 +94,8 @@ def parse_leagueoflegends(in_file):
 # 	exit()
 
 # ---- Take input data ----
+
+
 print("Parsing gold.csv...")
 gold_nparray = parse_goldfile(gold_inputfile)
 
@@ -105,6 +107,12 @@ d[3] = gold_nparray[:,20].reshape(-1,1) #gold_20min
 d[4] = gold_nparray[:,25].reshape(-1,1) #gold_25min
 d[5] = gold_nparray[:,29].reshape(-1,1) #gold_30min
 print("Done.")
+
+print("gold@20 with nan")
+print(d[3])
+print("gold@30 without nan")
+d[3] = d[3].dropna()
+print(d[3])
 
 print("Parsing LeagueofLegends.csv...")
 matchoutcomes_nparray = parse_leagueoflegends(leagueoflegends_inputfile)
