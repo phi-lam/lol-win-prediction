@@ -9,6 +9,8 @@ import math
 import sys
 from operator import itemgetter
 from sklearn import svm
+from sklearn import linear_model
+from sklearn import discriminant_analysis
 from sklearn.model_selection import train_test_split
 
 ########################## VARIABLE DECLARATIONS ###########################
@@ -17,6 +19,10 @@ from sklearn.model_selection import train_test_split
 # NALCS: rows 2 - 1115
 # EULCS: rows 1116 - 2055
 # LCK: rows 2056 - 3374
+# TODO: if at least 3-4k instances, is ok
+# clean data > just many instances
+# normalize gold values
+# 2 col. per character (each team), 1 flag if character chosen
 
 #FILE PATHS
 gold_inputfile = "gold.csv"
@@ -63,82 +69,6 @@ def parse_leagueoflegends(in_file):
 #		1) Iterate through list,
 #
 
-#-----------------------------------------------------------------
-#	FUNCTION: populate()
-#   Input: training-data.txt
-#	Procedure:
-#		1) Entire data set goes into source_training_data
-#		2) First column becomes 'y', the rest is 'x'
-#
-
-def populate_training(in_file, source_array, data_y, data_x):
-	global training_y, training_x, training_data
-	for sampleid, line in enumerate(in_file):
-		features = line.split()
-		for featureid, feature in enumerate(features):
-			feature = feature.strip()
-			source_array[sampleid][featureid] = feature
-
-	#---Convert to numpy arrays
-	#--- Import the source data as numpy array, delete strings, convert to floats
-	full_list = np.asarray(source_array)
-	full_list = np.delete(full_list, 0, axis=0)
-	full_list = full_list.astype(float)
-	temp = full_list
-	training_data = full_list
-	# print(full_list)
-	# training_data = np.delete(training_data, 4, 1)
-
-	#--- Separate y and x
-	data_y = full_list[:,[0]]
-	data_x = np.delete(temp, 0, axis=1)
-
-	training_y = data_y
-	training_x = data_x
-	#-----Debugging-------
-	#print("==== data_y ====\n", np.shape(data_y))
-	# print(data_y)
-	#print("==== data_x ====\n", np.shape(data_x))
-	# print(data_x)
-
-#-----------------------------------------------------------------
-#	FUNCTION: populate_test()
-#   Input: test-data.txt
-#	Procedure:
-#		1) Entire data set goes into source_training_data
-#		2) First column becomes 'y', the rest is 'x'
-#
-
-def populate_test(in_file, source_array, data_y, data_x):
-	global test_y, test_x
-	for sampleid, line in enumerate(in_file):
-		features = line.split()
-		for featureid, feature in enumerate(features):
-			feature = feature.strip()
-			source_array[sampleid][featureid] = feature
-
-	#---Convert to numpy arrays
-	#--- Import the source data as floats (also skips first row of text)
-	full_list = np.asarray(source_array)
-	full_list = np.delete(full_list, 0, axis=0)
-	full_list = full_list.astype(float)
-	temp = full_list
-
-	# print(full_list)
-	# training_data = np.delete(training_data, 4, 1)
-
-	#--- Separate y and x
-	data_y = full_list[:,[0]]
-	data_x = np.delete(temp, 0, axis=1)
-
-	test_y = data_y
-	test_x = data_x
-	#-----Debugging-------
-	#print("==== data_y ====\n", np.shape(data_y))
-	# print(data_y)
-	#print("==== data_x ====\n", np.shape(data_x))
-	# print(data_x)
-
 
 ################################# main ###################################
 
@@ -180,17 +110,51 @@ print("Parsing LeagueofLegends.csv...")
 matchoutcomes_nparray = parse_leagueoflegends(leagueoflegends_inputfile)
 print("Done.")
 
-print("=== SVM Classification === ")
+#crossvalidation
+
+print("\n=== LDA, Gold Test === ")
+for i in range(6):
+	if np.isnan(d[i]).any():
+		continue
+	print(d[i])
+	gold_train, gold_test, outcome_train, outcome_test = train_test_split(d[i], matchoutcomes_nparray, test_size=0.2)
+
+	clf1 = discriminant_analysis.LinearDiscriminantAnalysis()
+	clf1.fit(gold_train, outcome_train.ravel())
+	pred = clf1.predict(gold_test)
+	print("Prediction error at time: ", 5*(i + 1), ":00")
+
+	print("\t", clf1.score(gold_test, outcome_test), "\n")
+
+print("\n=== Logistic Regression, Gold Test === ")
+for i in range(6):
+	if np.isnan(d[i]).any():
+		continue
+	print(d[i])
+	gold_train, gold_test, outcome_train, outcome_test = train_test_split(d[i], matchoutcomes_nparray, test_size=0.2)
+	if np.isnan(gold_train).any():
+		continue
+
+	clf2 = linear_model.LogisticRegression()
+	clf2.fit(gold_train, outcome_train.ravel())
+	pred = clf2.predict(gold_test)
+
+	print("Prediction error at time: ", 5*(i + 1), ":00")
+	print("\t", clf2.score(gold_test, outcome_test), "\n")
+
+
+print("\n=== SVM Classification, Gold Test === ")
 
 for i in range(6):
 	print(d[i])
 	gold_train, gold_test, outcome_train, outcome_test = train_test_split(d[i], matchoutcomes_nparray, test_size=0.2)
-	if np.isnan(gold_train.any()):
-		break
+	if np.isnan(gold_train).any():
+		continue
 
-	clf = svm.LinearSVC()
-	clf.fit(gold_train, outcome_train.ravel())
+	clf3 = svm.LinearSVC()
+	clf3.fit(gold_train, outcome_train.ravel())
+	pred = clf3.predict(gold_test)
 	print("Prediction error at time: ", 5*(i + 1), ":00")
-	print(clf.score(gold_test, outcome_test))
+	print("\t", clf3.score(gold_test, outcome_test), "\n")
 
 #end
