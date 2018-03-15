@@ -11,7 +11,6 @@ from operator import itemgetter
 from sklearn import svm
 from sklearn import linear_model
 from sklearn import discriminant_analysis
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 
@@ -154,17 +153,21 @@ print("Done.")
 #crossvalidation
 
 for i in range(6):
-	print("\n===== Prediction error at time: ", 5*(i + 1), ":00 =====", sep='')
 
-	if np.isnan(gold_col[i]).any():
-		result = delete_nanrows(gold_col[i], matchoutcomes_nparray)
+	# Assemble data array
+	#temp fix
+	input_array = gold_col[i]
+
+	if np.isnan(input_array).any():
+		result = delete_nanrows(input_array, matchoutcomes_nparray)
 		data = result['data']
 		outcomes = result['labels']
 	else:
-		data = gold_col[i]
+		data = input_array
 		outcomes = matchoutcomes_nparray
 
 	#print("array lengths: ", len(data), len(outcomes))
+	print("\n===== Prediction error at time: ", 5*(i + 1), ":00 =====", sep='')
 	data_train, data_test, outcome_train, outcome_test = train_test_split(data, outcomes, test_size=0.2)
 
 	print("\n - LDA, Gold Test ")
