@@ -135,25 +135,24 @@ def parse_towers(towers_list):
 #
 #	FUNCTION: parse_barons
 #
-#	Description: Currently serves as parser for all objectives.
-#				Once dragons and barons are differentiated, may need to specialize
-#				functions.
+#	Description: Barons had to be parsed differently due to extra brackets
 #
 
 def parse_barons(barons_list):
 	debug = True
 	barons = np.zeros((7620,100))		# 100 is max game length in minutes
 	for i, row in enumerate(barons_list):
-		if debug: print(row) # Print entire row
-		for item in row.split('['):
-			for elt in item.split(','):
-				try:
-					if (float(elt) < 100): # By experimentation, this captures latest game
-						kill_time = int(float(elt))
-						if debug: print(kill_time) # Check that each kill from row is present
-						barons[i][kill_time] += 1
-				except:
-					continue
+		if debug: print("Row: ",row) # Print entire row
+		for item in row.split(']'):
+			item = item.strip('[], ')
+			#print("item: ", item)
+			try:
+				if (float(item) < 100): # By experimentation, this captures latest game
+					kill_time = int(float(item))
+					if debug: print(kill_time) # Check that each kill from row is present
+					barons[i][kill_time] += 1
+			except:
+				continue
 		if debug: print("------------------")
 	np.savetxt("parsed_barons.csv", barons, delimiter=",")
 	return barons # returns a numpy array
@@ -254,7 +253,6 @@ rbaron_col[2] = rbaron_nparray[:,14].reshape(-1,1) #red barons @ 15 min
 rbaron_col[3] = rbaron_nparray[:,19].reshape(-1,1) #red barons @ 20 min
 rbaron_col[4] = rbaron_nparray[:,24].reshape(-1,1) #red barons @ 25 min
 rbaron_col[5] = rbaron_nparray[:,29].reshape(-1,1) #red barons @ 30 min
-exit()
 print("Done.")
 
 
