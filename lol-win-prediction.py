@@ -80,25 +80,6 @@ def parse_labels(in_file):
 	df.to_csv('parsed_leagueoflegends.csv')
 	return out_array
 
-# def parse_leagueoflegends(in_file):
-# 	df = pd.read_csv(in_file, header = 0)
-# 	original_headers = list(df.columns.values)
-# 	# parse_kills(df['bKills'].tolist())
-# 	blue_towers_list = df['bTowers']
-# 	blue_dragons_list = df['bDragons']
-# 	blue_barons_list = df['bBarons']
-# 	blue_heralds_list = df['bHeralds']
-# 	red_kills_list = df['rKills']
-# 	red_towers_list = df['rTowers']
-# 	red_dragons_list = df['rDragons']
-# 	red_barons_list = df['rBarons']
-# 	red_heralds_list = df['rHeralds']
-# 	# print(blue_kills_list)
-# 	# print(blue_barons_list)
-# 	# print(blue_dragons_list)
-# 	# print(blue_barons_list)
-# 	# print(blue_heralds_list)
-
 ##############################################################################
 #	FUNCTION: parse_kills
 #
@@ -149,6 +130,33 @@ def parse_towers(towers_list):
 		if debug: print("------------------")
 	np.savetxt("parsed_towers.csv", towers, delimiter=",")
 	return towers # returns a numpy array
+
+########################################################################
+#
+#	FUNCTION: parse_barons
+#
+#	Description: Currently serves as parser for all objectives.
+#				Once dragons and barons are differentiated, may need to specialize
+#				functions.
+#
+
+def parse_barons(barons_list):
+	debug = True
+	barons = np.zeros((7620,100))		# 100 is max game length in minutes
+	for i, row in enumerate(barons_list):
+		if debug: print(row) # Print entire row
+		for item in row.split('['):
+			for elt in item.split(','):
+				try:
+					if (float(elt) < 100): # By experimentation, this captures latest game
+						kill_time = int(float(elt))
+						if debug: print(kill_time) # Check that each kill from row is present
+						barons[i][kill_time] += 1
+				except:
+					continue
+		if debug: print("------------------")
+	np.savetxt("parsed_barons.csv", barons, delimiter=",")
+	return barons # returns a numpy array
 
 ##############################################################################
 #	FUNCTION: delete_nanrows(nparray_)
@@ -227,12 +235,33 @@ red_dragons_list = df['rDragons']
 red_barons_list = df['rBarons']
 red_heralds_list = df['rHeralds']
 
+print("Parsing barons...")
+bbaron_nparray = parse_barons(df['bBarons'].tolist())
+bbaron_col = {}
+bbaron_col[0] = bbaron_nparray[:,4].reshape(-1,1) #blue barons @ 5 min
+bbaron_col[1] = bbaron_nparray[:,9].reshape(-1,1) #blue barons @ 10 min
+bbaron_col[2] = bbaron_nparray[:,14].reshape(-1,1) #blue barons @ 15 min
+bbaron_col[3] = bbaron_nparray[:,19].reshape(-1,1) #blue barons @ 20 min
+bbaron_col[4] = bbaron_nparray[:,24].reshape(-1,1) #blue barons @ 25 min
+bbaron_col[5] = bbaron_nparray[:,29].reshape(-1,1) #blue barons @ 30 min
+
+
+rbaron_nparray = parse_towers(df['rBarons'].tolist())
+rbaron_col = {}
+rbaron_col[0] = rbaron_nparray[:,4].reshape(-1,1) #red barons @ 5 min
+rbaron_col[1] = rbaron_nparray[:,9].reshape(-1,1) #red barons @ 10 min
+rbaron_col[2] = rbaron_nparray[:,14].reshape(-1,1) #red barons @ 15 min
+rbaron_col[3] = rbaron_nparray[:,19].reshape(-1,1) #red barons @ 20 min
+rbaron_col[4] = rbaron_nparray[:,24].reshape(-1,1) #red barons @ 25 min
+rbaron_col[5] = rbaron_nparray[:,29].reshape(-1,1) #red barons @ 30 min
+exit()
+print("Done.")
+
 
 print("Parsing gold.csv...")
+# For gold, the leftmost column in .csv isn't counted as an index. min_5 is col[4]
 gold_nparray = parse_goldfile(gold_inputfile)
 num_instances = len(gold_nparray)
-
-# For gold, the leftmost column in .csv isn't counted as an index. min_5 is col[4]
 gold_col = {}
 gold_col[0] = gold_nparray[:,4].reshape(-1,1) #gold_5min
 gold_col[1] = gold_nparray[:,9].reshape(-1,1) #gold_10min
@@ -291,6 +320,28 @@ rtower_col[4] = rtower_nparray[:,24].reshape(-1,1) #red towers @ 25 min
 rtower_col[5] = rtower_nparray[:,29].reshape(-1,1) #red towers @ 30 min
 print("Done.")
 
+# TODO: See why inhibitors cause division by zero @ 5 min
+print("Parsing inhibitors...")
+binhib_nparray = parse_towers(df['bInhibs'].tolist())
+binhib_col = {}
+binhib_col[0] = binhib_nparray[:,4].reshape(-1,1) #blue inhibs @ 5 min
+binhib_col[1] = binhib_nparray[:,9].reshape(-1,1) #blue inhibs @ 10 min
+binhib_col[2] = binhib_nparray[:,14].reshape(-1,1) #blue inhibs @ 15 min
+binhib_col[3] = binhib_nparray[:,19].reshape(-1,1) #blue inhibs @ 20 min
+binhib_col[4] = binhib_nparray[:,24].reshape(-1,1) #blue inhibs @ 25 min
+binhib_col[5] = binhib_nparray[:,29].reshape(-1,1) #blue inhibs @ 30 min
+
+rinhib_nparray = parse_towers(df['rInhibs'].tolist())
+rinhib_col = {}
+rinhib_col[0] = rinhib_nparray[:,4].reshape(-1,1) #red inhibs @ 5 min
+rinhib_col[1] = rinhib_nparray[:,9].reshape(-1,1) #red inhibs @ 10 min
+rinhib_col[2] = rinhib_nparray[:,14].reshape(-1,1) #red inhibs @ 15 min
+rinhib_col[3] = rinhib_nparray[:,19].reshape(-1,1) #red inhibs @ 20 min
+rinhib_col[4] = rinhib_nparray[:,24].reshape(-1,1) #red inhibs @ 25 min
+rinhib_col[5] = rinhib_nparray[:,29].reshape(-1,1) #red inhibs @ 30 min
+# exit()
+print("Done.")
+
 print("Parsing dragons...")
 bdragon_nparray = parse_towers(df['bDragons'].tolist())
 bdragon_col = {}
@@ -322,7 +373,7 @@ for i in range(6):
 	#temp fix
 	# print(np.shape(gold_col[i]))
 	# print(np.shape(bkill_col[i]))
-	input_array = np.concatenate((gold_col[i], bkill_col[i], rkill_col[i], btower_col[i], rtower_col[i], bdragon_col[i], rdragon_col[i]), axis=1)
+	input_array = np.concatenate((gold_col[i], bkill_col[i], rkill_col[i], btower_col[i], rtower_col[i], bdragon_col[i], rdragon_col[i], binhib_col[i], rinhib_col[i]), axis=1)
 	print(np.shape(input_array))
 
 	if np.isnan(input_array).any():
