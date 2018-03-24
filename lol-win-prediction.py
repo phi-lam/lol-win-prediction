@@ -80,7 +80,7 @@ def parse_labels(in_file):
 def parse_leagueoflegends(in_file):
 	df = pd.read_csv(in_file, header = 0)
 	original_headers = list(df.columns.values)
-	blue_kills_list = df['bKills']
+	blue_kills_list = df['bKills'].tolist()
 	blue_towers_list = df['bTowers']
 	blue_dragons_list = df['bDragons']
 	blue_barons_list = df['bBarons']
@@ -90,21 +90,29 @@ def parse_leagueoflegends(in_file):
 	red_dragons_list = df['rDragons']
 	red_barons_list = df['rBarons']
 	red_heralds_list = df['rHeralds']
-	print(blue_kills_list)
-	print(blue_barons_list)
-	print(blue_dragons_list)
-	print(blue_barons_list)
-	print(blue_heralds_list)
+	# print(blue_kills_list)
+	# print(blue_barons_list)
+	# print(blue_dragons_list)
+	# print(blue_barons_list)
+	# print(blue_heralds_list)
 
+# def parse_kills(blue_kills_list):
 	## Parse kills
-	bKills = []
-	for row in blue_kills_list.split():
-		# print(row)
-		bKills.append([item[0] for item in blue_kills_list])
-	#
-	for row in bKills:
-		print(row)
-
+	# print(len(blue_kills_list))
+	bKills = np.zeros((7620,100))		# 100 is max game length in minutes
+	for i, row in enumerate(blue_kills_list):
+		print(row) # Print entire row
+		for item in row.split('['):
+			for elt in item.split(','):
+				try:
+					if (float(elt) < 100): # By experimentation, this captures latest game
+						kill_time = int(float(elt))
+						print(kill_time) # Check that each kill from row is present
+						bKills[i][kill_time] += 1
+				except:
+					continue
+		print("------------------")
+	np.savetxt("parsed_kills.csv", bKills, delimiter=",")
 
 
 ##############################################################################
