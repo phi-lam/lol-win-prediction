@@ -3,6 +3,9 @@
 #lol-win-prediction.py
 
 # TODO:
+#	- clean up code
+
+# TODO (complete):
 	# - finish parsing each column
 	# - convert each column into a feature:
 	#		- for each instance:
@@ -120,10 +123,17 @@ def parse_kills(kills_list):
 	np.savetxt("parsed_kills.csv", kills, delimiter=",")
 	return kills # returns a numpy array
 
-
+########################################################################
+#
+#	FUNCTION: parse_towers
+#
+#	Description: Currently serves as parser for all objectives.
+#				Once dragons and towers are differentiated, may need to specialize
+#				functions.
+#
 
 def parse_towers(towers_list):
-	debug = True
+	debug = False
 	towers = np.zeros((7620,100))		# 100 is max game length in minutes
 	for i, row in enumerate(towers_list):
 		if debug: print(row) # Print entire row
@@ -192,27 +202,6 @@ def delete_nanrows(np_data, np_labels):
 
 ################################# main ###################################
 
-# ---- Opening files/correcting user input ----
-# if len(sys.argv) == 3:
-# 	try:
-# 		f1 = open(sys.argv[1])
-# 		f2 = open(sys.argv[2])
-# 	except:
-# 		print("Usage: arguments must be text files")
-# 		exit()
-# elif len(sys.argv) == 4:
-# 	try:
-# 		f1 = open(sys.argv[1])
-# 		f2 = open(sys.argv[2])
-# 		sys.stdout = open(sys.argv[3], "w")
-# 	except:
-# 		print("Usage: arguments must be text files")
-# 		exit()
-# else:
-# 	print("Usage: linear-regression.py training.txt test.txt out_file.txt")
-# 	print("Note: if out_file.txt missing, will print to stdout")
-# 	exit()
-
 # ==== Workflow:
 #	1) Parse all files
 #		- make a dict with columns from relevant timestamps
@@ -251,7 +240,6 @@ gold_col[2] = gold_nparray[:,14].reshape(-1,1) #gold_15min
 gold_col[3] = gold_nparray[:,19].reshape(-1,1) #gold_20min
 gold_col[4] = gold_nparray[:,24].reshape(-1,1) #gold_25min
 gold_col[5] = gold_nparray[:,29].reshape(-1,1) #gold_30min
-
 print("Done.")
 
 
@@ -301,6 +289,29 @@ rtower_col[2] = rtower_nparray[:,14].reshape(-1,1) #red towers @ 15 min
 rtower_col[3] = rtower_nparray[:,19].reshape(-1,1) #red towers @ 20 min
 rtower_col[4] = rtower_nparray[:,24].reshape(-1,1) #red towers @ 25 min
 rtower_col[5] = rtower_nparray[:,29].reshape(-1,1) #red towers @ 30 min
+print("Done.")
+
+print("Parsing dragons...")
+bdragon_nparray = parse_towers(df['bDragons'].tolist())
+bdragon_col = {}
+bdragon_col[0] = bdragon_nparray[:,4].reshape(-1,1) #bdragon_5min
+bdragon_col[1] = bdragon_nparray[:,9].reshape(-1,1) #bdragon_10min
+bdragon_col[2] = bdragon_nparray[:,14].reshape(-1,1) #bdragon_15min
+bdragon_col[3] = bdragon_nparray[:,19].reshape(-1,1) #bdragon_20min
+bdragon_col[4] = bdragon_nparray[:,24].reshape(-1,1) #bdragon_25min
+bdragon_col[5] = bdragon_nparray[:,29].reshape(-1,1) #bdragon_30min
+
+rdragon_nparray = parse_towers(df['rDragons'].tolist())
+rdragon_col = {}
+rdragon_col[0] = rdragon_nparray[:,4].reshape(-1,1) #rdragon_5min
+rdragon_col[1] = rdragon_nparray[:,9].reshape(-1,1) #rdragon_10min
+rdragon_col[2] = rdragon_nparray[:,14].reshape(-1,1) #rdragon_15min
+rdragon_col[3] = rdragon_nparray[:,19].reshape(-1,1) #rdragon_20min
+rdragon_col[4] = rdragon_nparray[:,24].reshape(-1,1) #rdragon_25min
+rdragon_col[5] = rdragon_nparray[:,29].reshape(-1,1) #rdragon_30min
+print("Done.")
+
+
 
 #crossvalidation
 
@@ -311,7 +322,7 @@ for i in range(6):
 	#temp fix
 	# print(np.shape(gold_col[i]))
 	# print(np.shape(bkill_col[i]))
-	input_array = np.concatenate((gold_col[i], bkill_col[i], rkill_col[i], btower_col[i], rtower_col[i]), axis=1)
+	input_array = np.concatenate((gold_col[i], bkill_col[i], rkill_col[i], btower_col[i], rtower_col[i], bdragon_col[i], rdragon_col[i]), axis=1)
 	print(np.shape(input_array))
 
 	if np.isnan(input_array).any():
