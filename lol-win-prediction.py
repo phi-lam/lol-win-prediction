@@ -21,10 +21,6 @@
 	#		- elemental drags have different values
 	#		- different towers have different influences on the next objectives
 
-# TODO:
-	# - include Stochastic Gradient Descent
-	# - include PCA
-	# - if PCA doesn't work as desired, then implement individual tests
 
 ################################# IMPORTS ###################################
 import numpy as np
@@ -416,3 +412,9 @@ for i in range(6):
 # for i in range(6):
 #
 # #end
+
+
+# TODO:
+	# - include Stochastic Gradient Descent
+	# - include PCA
+	# - if PCA doesn't work as desired, then implement individual tests
